@@ -146,8 +146,8 @@ class BaseClassifier(object):
 
     def predict(self):
         """
-        Predict class labels for 'train' data and
-        return classification score by acc_scorer scorer
+        Predict class labels for 'test' data and
+        return classification score by accuracy scorer
         """
 
         self.check_model()
@@ -268,6 +268,7 @@ class RandomForest(BaseClassifier):
         plt.title('Feature importances from ' + self.filename_for_save)
         plt.xticks(bar_numbers, column_names, rotation=25)
         plt.savefig(self.filename_for_save + '.png')
+        plt.clf()
 
 
 def dot_to_png(path):
@@ -316,7 +317,7 @@ def compare(df, descriptors):
         winners[current_scores[0][0]] += 1
 
         logger.info(
-            'Iter# {0}, winner: {1}, accuracy = {2}'.format(iteration, current_scores[0][0], current_scores[0][1])
+            'Iter# {0}, winner: {1}, accuracy values: {2}'.format(iteration, current_scores[0][0], current_scores)
         )
 
         iteration += 1
