@@ -53,9 +53,27 @@ def visualize(df, descriptors, show_heat=True, show_hist=True, show_box=True):
     """
 
     if show_heat:
+        # calculate features heatmap
+
         corr = df[df.columns[descriptors[0]:descriptors[1]]].corr()
         heatmap(corr, xticklabels=corr.columns, yticklabels=corr.columns, annot=True)
         plt.title('Features heatmap')
+        plt.show()
+
+        # calculate mean class-features heatmap
+
+        corr = {column: [] for column in df.columns[descriptors[0]:descriptors[1]]}
+
+        for column in df[df.columns[descriptors[1]:]]:
+            for descriptor in corr:
+                corr[descriptor].append(df[column].corr(df[descriptor]))
+
+        for descriptor in corr:
+            corr[descriptor] = sum(corr[descriptor]) / len(corr[descriptor])
+
+        corr = pd.DataFrame(corr.values(), columns=['Class'], index=corr.keys())
+        heatmap(corr, xticklabels=corr.columns, yticklabels=corr.index, annot=True)
+        plt.title('Mean class-features heatmap')
         plt.show()
 
     if show_hist:
@@ -330,7 +348,7 @@ if __name__ == '__main__':
     # dot_to_png(Path(__file__).absolute().ancestor(1).child('models'))
 
     data = load_data()
-    # visualize(data, descriptors_index, show_heat=False, show_box=False)
+    # visualize(data, descriptors_index, show_hist=False, show_box=False)
     data = scale(data, descriptors_index)
 
     compare(data, descriptors_index)
