@@ -1,0 +1,1 @@
+{"max_features": "auto", "min_samples_leaf": 1, "min_impurity_split": null, "min_impurity_decrease": 0.0, "criterion": "gini", "oob_score": false, "class_weight": null, "warm_start": false, "min_weight_fraction_leaf": 0.0, "bootstrap": true, "max_depth": 10, "n_estimators": 130, "max_leaf_nodes": null, "verbose": 0, "random_state": null, "min_samples_split": 2, "n_jobs": null}

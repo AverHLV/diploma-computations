@@ -1,0 +1,1 @@
+{"presort": false, "max_features": null, "min_samples_leaf": 1, "min_impurity_split": null, "min_impurity_decrease": 0.0, "criterion": "gini", "random_state": null, "class_weight": null, "min_weight_fraction_leaf": 0.0, "splitter": "best", "max_depth": 5, "max_leaf_nodes": null, "min_samples_split": 2}
