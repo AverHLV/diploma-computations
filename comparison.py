@@ -1,18 +1,21 @@
 import logging
 import pandas as pd
 import matplotlib.pyplot as plt
+
 from numpy import std, argsort
 from seaborn import heatmap, boxplot
+from unipath import Path
+from pickle import load, dump
+from os import system
+
 from sklearn import metrics
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.model_selection import GridSearchCV, KFold
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.tree import DecisionTreeClassifier, export_graphviz
 from sklearn.ensemble import RandomForestClassifier
-from unipath import Path
-from pickle import load, dump
-from json import dumps
-from os import system
+from sklearn.neural_network import MLPClassifier
+from sklearn.multioutput import MultiOutputClassifier
 
 
 def set_logger(logger_name='comparison'):
@@ -135,7 +138,13 @@ class BaseClassifier(object):
         self.load_model()
 
     def __str__(self):
-        return 'Classifier object. Params:' + dumps(self.model.get_params())
+        print_string = 'Classifier object. Params:\n'
+        params = self.model.get_params()
+
+        for key in params:
+            print_string += '{0}: {1}\n'.format(key, params[key])
+
+        return print_string
 
     def check_model(self):
         if not self.fitted or self.model is None:
@@ -190,7 +199,7 @@ class BaseClassifier(object):
         self.check_model()
 
         with open(self.filename_for_save + '.params', 'w') as file:
-            file.write(dumps(self.model.get_params()))
+            file.write(self.__str__())
 
     def load_model(self):
         """ Load sklearn model from binary file by pickle """
@@ -289,6 +298,21 @@ class RandomForest(BaseClassifier):
         plt.clf()
 
 
+class NeuralNetwork(BaseClassifier):
+    search_params = {
+        'estimator__hidden_layer_sizes': [(100, 100), (100, 100, 100)],
+        'estimator__activation': ['logistic', 'tanh', 'relu'],
+        'estimator__solver': ['lbfgs', 'sgd', 'adam'],
+        'estimator__max_iter': [1000]
+    }
+
+    def __init__(self, input_data, descriptors, filename_for_save):
+        super().__init__(input_data, descriptors, filename_for_save)
+
+        if not self.fitted:
+            self.model = MultiOutputClassifier(MLPClassifier())
+
+
 def dot_to_png(path):
     """
     Convert all .dot files from specified folder to png
@@ -310,7 +334,7 @@ def compare(df, descriptors):
     """ Compare ML algorithms by cross-validation strategy """
 
     iteration = 0
-    winners = {'nb': 0, 'dt': 0, 'rf': 0}
+    winners = {'nb': 0, 'dt': 0, 'rf': 0, 'nn': 0}
     logger.info('Starting...')
 
     for train, test in split(df):
@@ -330,6 +354,10 @@ def compare(df, descriptors):
         forest.fit()
         forest.save_feature_importances()
         current_scores['rf'] = forest.predict()
+
+        network = NeuralNetwork(learning_data, descriptors, 'models/nn-{0}.model'.format(iteration))
+        network.fit()
+        current_scores['nn'] = network.predict()
 
         current_scores = sorted(list(current_scores.items()), reverse=True, key=lambda x: x[1])
         winners[current_scores[0][0]] += 1
