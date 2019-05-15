@@ -300,10 +300,9 @@ class RandomForest(BaseClassifier):
 
 class NeuralNetwork(BaseClassifier):
     search_params = {
-        'estimator__hidden_layer_sizes': [(100, 100), (100, 100, 100)],
+        'estimator__hidden_layer_sizes': [(100, 100)],
         'estimator__activation': ['logistic', 'tanh', 'relu'],
-        'estimator__solver': ['lbfgs', 'sgd', 'adam'],
-        'estimator__max_iter': [1000]
+        'estimator__solver': ['lbfgs', 'sgd', 'adam']
     }
 
     def __init__(self, input_data, descriptors, filename_for_save):
@@ -341,19 +340,19 @@ def compare(df, descriptors):
         current_scores = {}
         learning_data = {'train': df.loc[train], 'test': df.loc[test]}
 
-        neighbors = KNeighbors(learning_data, descriptors, 'models/nb-{0}.model'.format(iteration))
-        neighbors.fit()
-        current_scores['nb'] = neighbors.predict()
+        # neighbors = KNeighbors(learning_data, descriptors, 'models/nb-{0}.model'.format(iteration))
+        # neighbors.fit()
+        # current_scores['nb'] = neighbors.predict()
 
-        des_tree = DecisionTree(learning_data, descriptors, 'models/dt-{0}.model'.format(iteration))
-        des_tree.fit()
-        des_tree.save_to_dot()
-        current_scores['dt'] = des_tree.predict()
+        # des_tree = DecisionTree(learning_data, descriptors, 'models/dt-{0}.model'.format(iteration))
+        # des_tree.fit()
+        # des_tree.save_to_dot()
+        # current_scores['dt'] = des_tree.predict()
 
-        forest = RandomForest(learning_data, descriptors, 'models/rf-{0}.model'.format(iteration))
-        forest.fit()
-        forest.save_feature_importances()
-        current_scores['rf'] = forest.predict()
+        # forest = RandomForest(learning_data, descriptors, 'models/rf-{0}.model'.format(iteration))
+        # forest.fit()
+        # forest.save_feature_importances()
+        # current_scores['rf'] = forest.predict()
 
         network = NeuralNetwork(learning_data, descriptors, 'models/nn-{0}.model'.format(iteration))
         network.fit()
