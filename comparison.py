@@ -301,15 +301,15 @@ class RandomForest(BaseClassifier):
 class NeuralNetwork(BaseClassifier):
     search_params = {
         'estimator__hidden_layer_sizes': [(100, 100)],
-        'estimator__activation': ['logistic', 'tanh', 'relu'],
-        'estimator__solver': ['lbfgs', 'sgd', 'adam']
+        # 'estimator__activation': ['logistic', 'tanh', 'relu'],
+        # 'estimator__solver': ['lbfgs', 'sgd', 'adam']
     }
 
     def __init__(self, input_data, descriptors, filename_for_save):
         super().__init__(input_data, descriptors, filename_for_save)
 
         if not self.fitted:
-            self.model = MultiOutputClassifier(MLPClassifier())
+            self.model = MultiOutputClassifier(MLPClassifier(), n_jobs=6)
 
 
 def dot_to_png(path):
