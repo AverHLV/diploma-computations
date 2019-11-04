@@ -108,7 +108,7 @@ def scale(df: pd.DataFrame, descriptors: tuple) -> pd.DataFrame:
 def split(df: pd.DataFrame, n_splits: int = 5) -> tuple:
     """ Split pd.DataFrame to train / test subsets for cross-validation """
 
-    return KFold(n_splits=n_splits).split(df)
+    return KFold(n_splits=n_splits, shuffle=True).split(df)
 
 
 @metrics.make_scorer
