@@ -4,6 +4,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 from os import system
+from time import time
 from pathlib import Path
 from pickle import load, dump
 
@@ -104,23 +105,35 @@ def scale(df: pd.DataFrame, descriptors: tuple) -> pd.DataFrame:
     return df
 
 
-def split(df, n_splits=5):
+def split(df: pd.DataFrame, n_splits: int = 5) -> tuple:
     """ Split pd.DataFrame to train / test subsets for cross-validation """
 
     return KFold(n_splits=n_splits).split(df)
 
 
 @metrics.make_scorer
-def accuracy(real, prediction):
-    """
-    Calculate average accuracy for real and predicted labels
-
-    :param real: np.array
-    :param prediction: np.array
-    :return: float
-    """
+def accuracy(real: np.ndarray, prediction: np.ndarray):
+    """ Calculate average accuracy for real and predicted labels """
 
     return np.mean(np.array([metrics.accuracy_score(real[:, i], prediction[:, i]) for i in range(prediction.shape[1])]))
+
+
+@metrics.make_scorer
+def f1(real: np.ndarray, prediction: np.ndarray):
+    """ Calculate average F1 measure for real and predicted labels """
+
+    return np.mean(np.array(
+        [metrics.f1_score(real[:, i], prediction[:, i], average='weighted') for i in range(prediction.shape[1])]
+    ))
+
+
+@metrics.make_scorer
+def roc_auc(real: np.ndarray, prediction: np.ndarray):
+    """ Calculate average ROC AUC for real and predicted labels """
+
+    return np.mean(np.array(
+        [metrics.roc_auc_score(real[:, i], prediction[:, i], average='weighted') for i in range(prediction.shape[1])]
+    ))
 
 
 class BaseClassifier(object):
@@ -131,7 +144,7 @@ class BaseClassifier(object):
 
     search_params = {}
 
-    def __init__(self, input_data, descriptors, filename_for_save):
+    def __init__(self, input_data, descriptors: tuple, filename_for_save: str):
         self.model = None
         self.fitted = False
         self.input_data = input_data
@@ -144,21 +157,22 @@ class BaseClassifier(object):
         params = self.model.get_params()
 
         for key in params:
-            print_string += '{0}: {1}\n'.format(key, params[key])
+            print_string += f'{key}: {params[key]}\n'
 
         return print_string
 
-    def check_model(self):
+    def check_model(self) -> None:
         if not self.fitted or self.model is None:
             raise ValueError('Model is not fitted or not created')
 
-    def fit(self):
+    def fit(self) -> None:
         """
         Fit classifier with 'train' data, find best hyper parameters via grid search
         and save best model
         """
 
-        model = GridSearchCV(self.model, param_grid=self.search_params, scoring=accuracy, cv=3, iid=True)
+        scoring = {'Accuracy': accuracy, 'F1': f1, 'ROC_AUC': roc_auc}
+        model = GridSearchCV(self.model, param_grid=self.search_params, scoring=scoring, cv=3, iid=True, refit='F1')
 
         model.fit(
             self.input_data['train'][self.input_data['train'].columns[self.descriptors[0]:self.descriptors[1]]].values,
@@ -172,22 +186,23 @@ class BaseClassifier(object):
 
         self.save_model()
         self.save_model_params()
+        self.save_fit_plot(model.cv_results_, scoring)
 
-    def predict(self):
+    def predict(self) -> float:
         """
         Predict class labels for 'test' data and
-        return classification score by accuracy scorer
+        return classification score by metric scorer
         """
 
         self.check_model()
 
-        return accuracy(
+        return f1(
             self.model,
             self.input_data['test'][self.input_data['test'].columns[self.descriptors[0]:self.descriptors[1]]].values,
             self.input_data['test'][self.input_data['test'].columns[self.descriptors[1]:]].values
         )
 
-    def save_model(self):
+    def save_model(self) -> None:
         """ Save sklearn model to binary file by pickle """
 
         self.check_model()
@@ -195,7 +210,7 @@ class BaseClassifier(object):
         with open(self.filename_for_save, 'wb') as file:
             dump(self.model, file)
 
-    def save_model_params(self):
+    def save_model_params(self) -> None:
         """ Save sklearn model parameters to file """
 
         self.check_model()
@@ -203,7 +218,27 @@ class BaseClassifier(object):
         with open(self.filename_for_save + '.params', 'w') as file:
             file.write(self.__str__())
 
-    def load_model(self):
+    def save_fit_plot(self, results: dict, scoring: dict) -> None:
+        """ Build and save GridSearchCV metric dynamics """
+
+        self.check_model()
+        point_numbers = list(range(len(results['mean_test_Accuracy'])))
+
+        for scorer in sorted(scoring):
+            plt.plot(point_numbers, results[f'mean_test_{scorer}'], label=f'{scorer}')
+            best_index = np.nonzero(results[f'rank_test_{scorer}'] == 1)[0][0]
+            best_score = results[f'mean_test_{scorer}'][best_index]
+            plt.annotate('%0.2f' % best_score, (point_numbers[best_index], best_score + 0.005))
+
+        plt.title('GridSearchCV metrics dynamics for ' + self.filename_for_save)
+        plt.xticks(point_numbers)
+        plt.xlabel('Number of observation')
+        plt.ylabel('Score')
+        plt.legend()
+        plt.savefig(self.filename_for_save + '_metrics.png')
+        plt.clf()
+
+    def load_model(self) -> None:
         """ Load sklearn model from binary file by pickle """
 
         try:
@@ -329,41 +364,52 @@ def compare(df, descriptors):
     """ Compare ML algorithms by cross-validation strategy """
 
     iteration = 0
-    winners = {'nb': 0, 'dt': 0, 'rf': 0, 'nn': 0}
+    winners = {'nb': 0, 'dt': 0, 'rf': 0}
     logger.info('Starting...')
 
     for train, test in split(df):
         current_scores = {}
         learning_data = {'train': df.loc[train], 'test': df.loc[test]}
 
-        # neighbors = KNeighbors(learning_data, descriptors, 'models/nb-{0}.model'.format(iteration))
-        # neighbors.fit()
-        # current_scores['nb'] = neighbors.predict()
+        # k-neighbors
 
-        # des_tree = DecisionTree(learning_data, descriptors, 'models/dt-{0}.model'.format(iteration))
-        # des_tree.fit()
-        # des_tree.save_to_dot()
-        # current_scores['dt'] = des_tree.predict()
+        start_time = time()
+        model_name = f'models/nb-{iteration}.model'
+        neighbors = KNeighbors(learning_data, descriptors, model_name)
+        neighbors.fit()
+        current_scores['nb'] = neighbors.predict()
+        logger.info(f'{model_name} fit time: {time() - start_time} s')
 
-        # forest = RandomForest(learning_data, descriptors, 'models/rf-{0}.model'.format(iteration))
-        # forest.fit()
-        # forest.save_feature_importances()
-        # current_scores['rf'] = forest.predict()
+        '''
+        # decision tree
+        
+        start_time = time()
+        model_name = f'models/dt-{iteration}.model'
+        des_tree = DecisionTree(learning_data, descriptors, model_name)
+        des_tree.fit()
+        des_tree.save_to_dot()
+        current_scores['dt'] = des_tree.predict()
+        logger.info(f'{model_name} fit time: {time() - start_time} s')
+        '''
 
-        network = NeuralNetwork(learning_data, descriptors, 'models/nn-{0}.model'.format(iteration))
-        network.fit()
-        current_scores['nn'] = network.predict()
+        '''
+        # random forest
+        
+        start_time = time()
+        model_name = f'models/rf-{iteration}.model'
+        forest = RandomForest(learning_data, descriptors, model_name)
+        forest.fit()
+        forest.save_feature_importances()
+        current_scores['rf'] = forest.predict()
+        logger.info(f'{model_name} fit time: {time() - start_time} s')
+        '''
 
         current_scores = sorted(list(current_scores.items()), reverse=True, key=lambda x: x[1])
         winners[current_scores[0][0]] += 1
-
-        logger.info(
-            'Iter# {0}, winner: {1}, accuracy values: {2}'.format(iteration, current_scores[0][0], current_scores)
-        )
-
+        logger.info(f'Iter# {iteration}, winner: {current_scores[0][0]}, metric values: {current_scores}')
         iteration += 1
 
-    logger.info('Results: {0}'.format(winners))
+    logger.info(f'Results: {winners}')
 
 
 if __name__ == '__main__':
@@ -372,8 +418,8 @@ if __name__ == '__main__':
 
     # dot_to_png(base_dir / 'models')
 
-    data = load_data(base_dir / 'csv' / 'data.csv')
+    data = load_data(base_dir / 'csv' / 'data.csv')[:50]
     # visualize(data, descriptors_index)
     data = scale(data, descriptors_index)
 
-    # compare(data, descriptors_index)
+    compare(data, descriptors_index)
