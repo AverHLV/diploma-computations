@@ -172,7 +172,16 @@ class BaseClassifier(object):
         """
 
         scoring = {'Accuracy': accuracy, 'F1': f1, 'ROC_AUC': roc_auc}
-        model = GridSearchCV(self.model, param_grid=self.search_params, scoring=scoring, cv=3, iid=True, refit='F1')
+
+        model = GridSearchCV(
+            self.model,
+            param_grid=self.search_params,
+            scoring=scoring,
+            cv=3,
+            iid=True,
+            refit='F1',
+            error_score='raise'
+        )
 
         model.fit(
             self.input_data['train'][self.input_data['train'].columns[self.descriptors[0]:self.descriptors[1]]].values,
@@ -283,7 +292,9 @@ class DecisionTree(BaseClassifier):
         self.check_model()
 
         export_graphviz(
-            self.model, filled=True, out_file=self.filename_for_save + '.dot',
+            self.model,
+            filled=True,
+            out_file=self.filename_for_save + '.dot',
             feature_names=self.input_data['test'].columns[self.descriptors[0]:self.descriptors[1]]
         )
 
@@ -417,7 +428,7 @@ if __name__ == '__main__':
 
     # dot_to_png(base_dir / 'models')
 
-    data = load_data(base_dir / 'csv' / 'data.csv')[:20]
+    data = load_data(base_dir / 'csv' / 'data.csv')
     # visualize(data, descriptors_index)
     data = scale(data, descriptors_index)
 
