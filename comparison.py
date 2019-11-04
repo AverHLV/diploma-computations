@@ -127,15 +127,6 @@ def f1(real: np.ndarray, prediction: np.ndarray):
     ))
 
 
-@metrics.make_scorer
-def roc_auc(real: np.ndarray, prediction: np.ndarray):
-    """ Calculate average ROC AUC for real and predicted labels """
-
-    return np.mean(np.array(
-        [metrics.roc_auc_score(real[:, i], prediction[:, i], average='weighted') for i in range(prediction.shape[1])]
-    ))
-
-
 class BaseClassifier(object):
     """
     Base classifiers class that provides saving / loading model objects
@@ -171,7 +162,7 @@ class BaseClassifier(object):
         and save best model
         """
 
-        scoring = {'Accuracy': accuracy, 'F1': f1, 'ROC_AUC': roc_auc}
+        scoring = {'Accuracy': accuracy, 'F1': f1}
 
         model = GridSearchCV(
             self.model,
