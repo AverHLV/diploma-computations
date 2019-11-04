@@ -1,12 +1,13 @@
 import logging
+import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
-from numpy import std, argsort
-from seaborn import heatmap, boxplot
-from unipath import Path
-from pickle import load, dump
 from os import system
+from pathlib import Path
+from pickle import load, dump
+
+from seaborn import heatmap, violinplot
 
 from sklearn import metrics
 from sklearn.preprocessing import MinMaxScaler
@@ -18,11 +19,12 @@ from sklearn.neural_network import MLPClassifier
 from sklearn.multioutput import MultiOutputClassifier
 
 
-def set_logger(logger_name='comparison'):
+def set_logger(logger_name: str = 'comparison') -> logging.Logger:
     """ Create and configure a logger """
 
     logging.basicConfig(
-        format='%(filename)s[%(levelname)s][%(asctime)s] %(message)s', level=logging.INFO,
+        format='%(filename)s[%(levelname)s][%(asctime)s] %(message)s',
+        level=logging.INFO,
         filename=logger_name + '.log'
     )
 
@@ -32,30 +34,30 @@ def set_logger(logger_name='comparison'):
 logger = set_logger()
 
 
-def load_data(filename='csv/data.csv', show=False):
+def load_data(path: Path, info: bool = False) -> pd.DataFrame:
     """ Load pd.DataFrame from csv """
 
-    df = pd.read_csv(filename)
+    df = pd.read_csv(path)
     df['Time'] = pd.to_datetime(df['Time'])
 
-    if show:
+    if info:
         print('Columns:', df.columns, '\nShape:', df.shape)
 
     return df
 
 
-def visualize(df, descriptors, show_heat=True, show_hist=True, show_box=True):
+def visualize(df: pd.DataFrame, descriptors: tuple, show: str = 'heat') -> None:
     """
     Visualise different statistics from pd.DataFrame
 
     :param df: pd.DataFrame
     :param descriptors: pair of column indices descriptors in DataFrame
-    :param show_heat: show features correlation heatmap
-    :param show_hist: show features histograms
-    :param show_box: show features boxplots
+    :param show: what plot to show
     """
 
-    if show_heat:
+    assert show in ('heat', 'hist', 'violin'), f'Wrong "show" value: {show}.'
+
+    if show == 'heat':
         # calculate features heatmap
 
         corr = df[df.columns[descriptors[0]:descriptors[1]]].corr()
@@ -72,23 +74,23 @@ def visualize(df, descriptors, show_heat=True, show_hist=True, show_box=True):
                 corr[descriptor].append(df[column].corr(df[descriptor]))
 
         for descriptor in corr:
-            corr[descriptor] = sum(corr[descriptor]) / len(corr[descriptor])
+            corr[descriptor] = np.mean(corr[descriptor])
 
         corr = pd.DataFrame(corr.values(), columns=['Class'], index=corr.keys())
         heatmap(corr, xticklabels=corr.columns, yticklabels=corr.index, annot=True)
         plt.title('Mean class-features heatmap')
         plt.show()
 
-    if show_hist:
+    elif show == 'hist':
         for column in df.columns[descriptors[0]:descriptors[1]]:
             plt.hist(df[column])
             plt.title(column + ' hist')
             plt.show()
 
-    if show_box:
+    else:
         for column in df.columns[descriptors[0]:descriptors[1]]:
-            boxplot(df[column])
-            plt.title(column + ' boxplot')
+            violinplot(df[column])
+            plt.title(column + ' violinplot')
             plt.show()
 
 
@@ -117,8 +119,7 @@ def accuracy(real, prediction):
     :return: float
     """
 
-    scores = [metrics.accuracy_score(real[:, i], prediction[:, i]) for i in range(prediction.shape[1])]
-    return sum(scores) / len(scores)
+    return np.mean(np.array([metrics.accuracy_score(real[:, i], prediction[:, i]) for i in range(prediction.shape[1])]))
 
 
 class BaseClassifier(object):
@@ -267,10 +268,10 @@ class RandomForest(BaseClassifier):
 
         self.check_model()
 
-        indices = argsort(self.model.feature_importances_)[::-1]
+        indices = np.argsort(self.model.feature_importances_)[::-1]
         importance_values = self.model.feature_importances_[indices]
 
-        st_dev = std([tree.feature_importances_ for tree in self.model.estimators_], axis=0)
+        st_dev = np.std([tree.feature_importances_ for tree in self.model.estimators_], axis=0)
         st_dev = st_dev[indices]
 
         column_names = [
@@ -301,8 +302,8 @@ class RandomForest(BaseClassifier):
 class NeuralNetwork(BaseClassifier):
     search_params = {
         'estimator__hidden_layer_sizes': [(100, 100)],
-        # 'estimator__activation': ['logistic', 'tanh', 'relu'],
-        # 'estimator__solver': ['lbfgs', 'sgd', 'adam']
+        'estimator__activation': ['logistic', 'tanh', 'relu'],
+        'estimator__solver': ['lbfgs', 'sgd', 'adam']
     }
 
     def __init__(self, input_data, descriptors, filename_for_save):
@@ -371,11 +372,13 @@ def compare(df, descriptors):
 
 
 if __name__ == '__main__':
+    base_dir = Path.cwd()
     descriptors_index = 1, 11
+
     # dot_to_png(Path(__file__).absolute().ancestor(1).child('models'))
 
-    data = load_data()
-    # visualize(data, descriptors_index, show_hist=False, show_box=False)
-    data = scale(data, descriptors_index)
+    data = load_data(base_dir / 'csv' / 'data.csv')
+    visualize(data, descriptors_index)
+    # data = scale(data, descriptors_index)
 
-    compare(data, descriptors_index)
+    # compare(data, descriptors_index)
