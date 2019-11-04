@@ -10,7 +10,7 @@ from pickle import load, dump
 from seaborn import heatmap, violinplot
 
 from sklearn import metrics
-from sklearn.preprocessing import MinMaxScaler
+from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import GridSearchCV, KFold
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.tree import DecisionTreeClassifier, export_graphviz
@@ -94,11 +94,12 @@ def visualize(df: pd.DataFrame, descriptors: tuple, show: str = 'heat') -> None:
             plt.show()
 
 
-def scale(df, descriptors):
-    """ Scale numeric fields to [0, 1] """
+def scale(df: pd.DataFrame, descriptors: tuple) -> pd.DataFrame:
+    """ Scale numeric fields by Standard scaler """
 
-    for column in df.columns[descriptors[0]:descriptors[1]]:
-        df[column] = MinMaxScaler().fit_transform(df[column].values.reshape(-1, 1))
+    df[df.columns[descriptors[0]:descriptors[1]]] = StandardScaler().fit_transform(
+        df[df.columns[descriptors[0]:descriptors[1]]]
+    )
 
     return df
 
@@ -373,6 +374,6 @@ if __name__ == '__main__':
 
     data = load_data(base_dir / 'csv' / 'data.csv')
     # visualize(data, descriptors_index)
-    # data = scale(data, descriptors_index)
+    data = scale(data, descriptors_index)
 
     # compare(data, descriptors_index)
