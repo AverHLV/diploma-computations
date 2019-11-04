@@ -253,7 +253,8 @@ class BaseClassifier(object):
 class KNeighbors(BaseClassifier):
     search_params = {
         'n_neighbors': [4, 5, 6, 7, 8],
-        'p': [1, 2, 3, 4]
+        'p': [1, 2, 3, 4],
+        'weights': ['uniform', 'distance'],
     }
 
     def __init__(self, input_data, descriptors, filename_for_save):
@@ -266,7 +267,8 @@ class KNeighbors(BaseClassifier):
 class DecisionTree(BaseClassifier):
     search_params = {
         'max_depth': [5, 7, 9, 11],
-        'criterion': ['gini', 'entropy']
+        'max_leaf_nodes': [2, 4, 6],
+        'criterion': ['gini', 'entropy'],
     }
 
     def __init__(self, input_data, descriptors, filename_for_save):
@@ -290,7 +292,8 @@ class RandomForest(BaseClassifier):
     search_params = {
         'n_estimators': [100, 130, 170, 200],
         'max_depth': [5, 7, 10],
-        'criterion': ['gini', 'entropy']
+        'max_leaf_nodes': [2, 4, 6],
+        'criterion': ['gini', 'entropy'],
     }
 
     def __init__(self, input_data, descriptors, filename_for_save):
@@ -380,7 +383,6 @@ def compare(df, descriptors):
         current_scores['nb'] = neighbors.predict()
         logger.info(f'{model_name} fit time: {time() - start_time} s')
 
-        '''
         # decision tree
         
         start_time = time()
@@ -390,9 +392,7 @@ def compare(df, descriptors):
         des_tree.save_to_dot()
         current_scores['dt'] = des_tree.predict()
         logger.info(f'{model_name} fit time: {time() - start_time} s')
-        '''
 
-        '''
         # random forest
         
         start_time = time()
@@ -402,7 +402,6 @@ def compare(df, descriptors):
         forest.save_feature_importances()
         current_scores['rf'] = forest.predict()
         logger.info(f'{model_name} fit time: {time() - start_time} s')
-        '''
 
         current_scores = sorted(list(current_scores.items()), reverse=True, key=lambda x: x[1])
         winners[current_scores[0][0]] += 1
@@ -418,7 +417,7 @@ if __name__ == '__main__':
 
     # dot_to_png(base_dir / 'models')
 
-    data = load_data(base_dir / 'csv' / 'data.csv')[:50]
+    data = load_data(base_dir / 'csv' / 'data.csv')[:20]
     # visualize(data, descriptors_index)
     data = scale(data, descriptors_index)
 
