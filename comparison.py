@@ -313,21 +313,15 @@ class NeuralNetwork(BaseClassifier):
             self.model = MultiOutputClassifier(MLPClassifier(), n_jobs=6)
 
 
-def dot_to_png(path):
+def dot_to_png(path: Path) -> None:
     """
     Convert all .dot files from specified folder to png
 
-    :param path: unipath.Path
+    :param path: path to folder with .dot files
     """
 
-    assert isinstance(path, Path), 'path should be an object of unipath.Path class'
-
-    for file in path.listdir(pattern='*.dot'):
-        if not file.isfile():
-            continue
-
-        file = file.relative()
-        system('dot -Tpng {0} -o {1}'.format(file, str(file)[:-3] + 'png'))
+    for file in path.glob('*.dot'):
+        system(f'dot -Tpng {file} -o {str(file)[:-3] + "png"}')
 
 
 def compare(df, descriptors):
@@ -375,10 +369,10 @@ if __name__ == '__main__':
     base_dir = Path.cwd()
     descriptors_index = 1, 11
 
-    # dot_to_png(Path(__file__).absolute().ancestor(1).child('models'))
+    # dot_to_png(base_dir / 'models')
 
     data = load_data(base_dir / 'csv' / 'data.csv')
-    visualize(data, descriptors_index)
+    # visualize(data, descriptors_index)
     # data = scale(data, descriptors_index)
 
     # compare(data, descriptors_index)
