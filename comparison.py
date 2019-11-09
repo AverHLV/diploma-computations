@@ -330,9 +330,6 @@ class RandomForest(BaseClassifier):
         indices = np.argsort(self.model.feature_importances_)[::-1]
         importance_values = self.model.feature_importances_[indices]
 
-        st_dev = np.std([tree.feature_importances_ for tree in self.model.estimators_], axis=0)
-        st_dev = st_dev[indices]
-
         column_names = [
             column if len(column) <= column_names_max_length else column[:column_names_max_length]
             for column in self.input_data['test'].columns[self.descriptors[0]:self.descriptors[1]][indices]
@@ -351,7 +348,7 @@ class RandomForest(BaseClassifier):
 
         bar_numbers = range(len(importance_values))
 
-        plt.bar(bar_numbers, importance_values, yerr=st_dev, align='center')
+        plt.bar(bar_numbers, importance_values, align='center')
         plt.title('Feature importances from ' + self.filename_for_save)
         plt.xticks(bar_numbers, column_names, rotation=25)
         plt.savefig(self.filename_for_save + '.png')
