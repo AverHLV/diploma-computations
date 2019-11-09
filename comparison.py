@@ -123,7 +123,7 @@ def f1(real: np.ndarray, prediction: np.ndarray):
     """ Calculate average F1 measure for real and predicted labels """
 
     return np.mean(np.array(
-        [metrics.f1_score(real[:, i], prediction[:, i], average='weighted') for i in range(prediction.shape[1])]
+        [metrics.f1_score(real[:, i], prediction[:, i], average='samples') for i in range(prediction.shape[1])]
     ))
 
 
@@ -169,9 +169,12 @@ class BaseClassifier(object):
             param_grid=self.search_params,
             scoring=scoring,
             cv=3,
-            iid=True,
+            n_jobs=4,
+            pre_dispatch=4,
+            iid=False,
             refit='F1',
-            error_score='raise'
+            error_score='raise',
+            return_train_score=True
         )
 
         model.fit(
@@ -222,16 +225,33 @@ class BaseClassifier(object):
         """ Build and save GridSearchCV metric dynamics """
 
         self.check_model()
-        point_numbers = list(range(len(results['mean_test_Accuracy'])))
+        point_numbers = np.array(range(len(results['mean_test_Accuracy'])))
 
         for scorer in sorted(scoring):
-            plt.plot(point_numbers, results[f'mean_test_{scorer}'], label=f'{scorer}')
+            for sample, style in ('train', '--'), ('test', '-'):
+                plt.plot(
+                    point_numbers,
+                    results[f'mean_{sample}_{scorer}'],
+                    style,
+                    alpha=1 if sample == 'test' else 0.7,
+                    label=f'{scorer} ({sample})'
+                )
+
             best_index = np.nonzero(results[f'rank_test_{scorer}'] == 1)[0][0]
             best_score = results[f'mean_test_{scorer}'][best_index]
-            plt.annotate('%0.2f' % best_score, (point_numbers[best_index], best_score + 0.005))
+
+            plt.plot(
+                [point_numbers[best_index], ] * 2,
+                [0, best_score],
+                linestyle='-.',
+                marker='x',
+                markeredgewidth=3,
+                ms=8
+            )
+
+            plt.annotate('%0.2f' % best_score, (point_numbers[best_index], best_score + 0.0005))
 
         plt.title('GridSearchCV metrics dynamics for ' + self.filename_for_save)
-        plt.xticks(point_numbers)
         plt.xlabel('Number of observation')
         plt.ylabel('Score')
         plt.legend()
