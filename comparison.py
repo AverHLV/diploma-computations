@@ -252,8 +252,8 @@ class BaseClassifier(object):
 
 class KNeighbors(BaseClassifier):
     search_params = {
-        'n_neighbors': [4, 5, 6, 7, 8],
-        'p': [1, 2, 3, 4],
+        'n_neighbors': [6, 8, 10, 12],
+        'p': [1, 2, 3],
         'weights': ['uniform', 'distance'],
     }
 
@@ -266,9 +266,8 @@ class KNeighbors(BaseClassifier):
 
 class DecisionTree(BaseClassifier):
     search_params = {
-        'max_depth': [5, 7, 9, 11],
-        'max_leaf_nodes': [2, 4, 6],
-        'criterion': ['gini', 'entropy'],
+        'max_depth': [3, 5, 7],
+        'max_leaf_nodes': [6, 10, 14]
     }
 
     def __init__(self, input_data, descriptors, filename_for_save):
@@ -292,10 +291,9 @@ class DecisionTree(BaseClassifier):
 
 class RandomForest(BaseClassifier):
     search_params = {
-        'n_estimators': [100, 130, 170, 200],
-        'max_depth': [5, 7, 10],
-        'max_leaf_nodes': [2, 4, 6],
-        'criterion': ['gini', 'entropy'],
+        'n_estimators': [80, 100, 130, 180],
+        'max_depth': [3, 5, 7],
+        'max_leaf_nodes': [6, 10, 14]
     }
 
     def __init__(self, input_data, descriptors, filename_for_save):
