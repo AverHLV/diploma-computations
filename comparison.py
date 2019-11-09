@@ -123,7 +123,7 @@ def f1(real: np.ndarray, prediction: np.ndarray):
     """ Calculate average F1 measure for real and predicted labels """
 
     return np.mean(np.array(
-        [metrics.f1_score(real[:, i], prediction[:, i], average='samples') for i in range(prediction.shape[1])]
+        [metrics.f1_score(real[:, i], prediction[:, i], average='macro') for i in range(prediction.shape[1])]
     ))
 
 
