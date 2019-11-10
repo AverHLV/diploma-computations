@@ -246,7 +246,8 @@ class BaseClassifier(object):
                 linestyle='-.',
                 marker='x',
                 markeredgewidth=3,
-                ms=8
+                ms=8,
+                markevery=best_index
             )
 
             plt.annotate('%0.2f' % best_score, (point_numbers[best_index], best_score + 0.0005))
@@ -272,7 +273,7 @@ class BaseClassifier(object):
 
 class KNeighbors(BaseClassifier):
     search_params = {
-        'n_neighbors': [6, 8, 10, 12],
+        'n_neighbors': [8, 14, 18],
         'p': [1, 2, 3],
         'weights': ['uniform', 'distance'],
     }
@@ -286,8 +287,7 @@ class KNeighbors(BaseClassifier):
 
 class DecisionTree(BaseClassifier):
     search_params = {
-        'max_depth': [3, 5, 7],
-        'max_leaf_nodes': [6, 10, 14]
+        'max_depth': [3, 5, 7]
     }
 
     def __init__(self, input_data, descriptors, filename_for_save):
@@ -311,9 +311,8 @@ class DecisionTree(BaseClassifier):
 
 class RandomForest(BaseClassifier):
     search_params = {
-        'n_estimators': [80, 100, 130, 180],
-        'max_depth': [3, 5, 7],
-        'max_leaf_nodes': [6, 10, 14]
+        'n_estimators': [60, 80, 100, 130, 180],
+        'max_depth': [3, 5, 7]
     }
 
     def __init__(self, input_data, descriptors, filename_for_save):
