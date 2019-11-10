@@ -172,7 +172,7 @@ class BaseClassifier(object):
             n_jobs=4,
             pre_dispatch=4,
             iid=False,
-            refit='F1',
+            refit='Accuracy',
             error_score='raise',
             return_train_score=True
         )
@@ -199,7 +199,7 @@ class BaseClassifier(object):
 
         self.check_model()
 
-        return f1(
+        return accuracy(
             self.model,
             self.input_data['test'][self.input_data['test'].columns[self.descriptors[0]:self.descriptors[1]]].values,
             self.input_data['test'][self.input_data['test'].columns[self.descriptors[1]:]].values
@@ -247,7 +247,7 @@ class BaseClassifier(object):
                 marker='x',
                 markeredgewidth=3,
                 ms=8,
-                markevery=best_index
+                markevery=1
             )
 
             plt.annotate('%0.2f' % best_score, (point_numbers[best_index], best_score + 0.0005))
@@ -273,7 +273,7 @@ class BaseClassifier(object):
 
 class KNeighbors(BaseClassifier):
     search_params = {
-        'n_neighbors': [8, 14, 18],
+        'n_neighbors': [14, 18, 22, 26],
         'p': [1, 2, 3],
         'weights': ['uniform', 'distance'],
     }
