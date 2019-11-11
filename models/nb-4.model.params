@@ -4,6 +4,6 @@ leaf_size: 30
 metric: minkowski
 metric_params: None
 n_jobs: None
-n_neighbors: 18
-p: 2
-weights: distance
+n_neighbors: 26
+p: 1
+weights: uniform
