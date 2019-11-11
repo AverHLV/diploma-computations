@@ -47,7 +47,7 @@ def load_data(path: Path, info: bool = False) -> pd.DataFrame:
     return df
 
 
-def visualize(df: pd.DataFrame, descriptors: tuple, show: str = 'heat') -> None:
+def visualize(df: pd.DataFrame, descriptors: tuple, show: str = 'class') -> None:
     """
     Visualise different statistics from pd.DataFrame
 
@@ -56,9 +56,30 @@ def visualize(df: pd.DataFrame, descriptors: tuple, show: str = 'heat') -> None:
     :param show: what plot to show
     """
 
-    assert show in ('heat', 'hist', 'violin'), f'Wrong "show" value: {show}.'
+    assert show in ('stats', 'data', 'class', 'heat', 'hist', 'violin'), f'Wrong "show" value: {show}.'
 
-    if show == 'heat':
+    if show == 'stats':
+        for column in df.columns[descriptors[0]:descriptors[1]]:
+            print(df[column].describe(), '\n')
+
+    elif show == 'data':
+        pass
+
+    elif show == 'class':
+        frequencies = {0: 0, 1: 0, 2: 0, 3: 0, 4: 0}
+
+        for column in df.columns[descriptors[1]:]:
+            print(f'\n{column}')
+            counts = dict(df[column].value_counts())
+            print(counts)
+
+            for key in counts:
+                frequencies[key] += counts[key]
+
+        print('\nFrequencies:')
+        print(frequencies)
+
+    elif show == 'heat':
         # calculate features heatmap
 
         corr = df[df.columns[descriptors[0]:descriptors[1]]].corr()
