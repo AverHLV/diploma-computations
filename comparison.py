@@ -191,7 +191,7 @@ class BaseClassifier(object):
             scoring=scoring,
             cv=3,
             n_jobs=6,
-            pre_dispatch=4,
+            pre_dispatch=6,
             iid=False,
             refit='Accuracy',
             error_score='raise',
