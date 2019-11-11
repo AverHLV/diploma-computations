@@ -169,7 +169,7 @@ class BaseClassifier(object):
             param_grid=self.search_params,
             scoring=scoring,
             cv=3,
-            n_jobs=4,
+            n_jobs=6,
             pre_dispatch=4,
             iid=False,
             refit='Accuracy',
@@ -264,7 +264,7 @@ class BaseClassifier(object):
 
 class KNeighbors(BaseClassifier):
     search_params = {
-        'n_neighbors': [22, 26, 32, 38],
+        'n_neighbors': [20, 24, 28],
         'p': [1, 2, 3]
     }
 
