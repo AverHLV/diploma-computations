@@ -240,16 +240,7 @@ class BaseClassifier(object):
             best_index = np.nonzero(results[f'rank_test_{scorer}'] == 1)[0][0]
             best_score = results[f'mean_test_{scorer}'][best_index]
 
-            plt.plot(
-                [point_numbers[best_index], ] * 2,
-                [0, best_score],
-                linestyle='-.',
-                marker='x',
-                markeredgewidth=3,
-                ms=8,
-                markevery=1
-            )
-
+            plt.plot([point_numbers[best_index], ] * 2, [0, best_score], linestyle='-.')
             plt.annotate('%0.2f' % best_score, (point_numbers[best_index], best_score + 0.0005))
 
         plt.title('GridSearchCV metrics dynamics for ' + self.filename_for_save)
@@ -273,9 +264,8 @@ class BaseClassifier(object):
 
 class KNeighbors(BaseClassifier):
     search_params = {
-        'n_neighbors': [14, 18, 22, 26],
-        'p': [1, 2, 3],
-        'weights': ['uniform', 'distance'],
+        'n_neighbors': [22, 26, 32, 38],
+        'p': [1, 2, 3]
     }
 
     def __init__(self, input_data, descriptors, filename_for_save):
