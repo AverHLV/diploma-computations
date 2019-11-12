@@ -455,7 +455,7 @@ if __name__ == '__main__':
     # dot_to_png(base_dir / 'models')
 
     data = load_data(base_dir / 'csv' / 'data.csv')
-    # visualize(data, descriptors_index)
-    data = scale(data, descriptors_index)
+    visualize(data, descriptors_index, show='data')
+    # data = scale(data, descriptors_index)
 
-    compare(data, descriptors_index)
+    # compare(data, descriptors_index)
