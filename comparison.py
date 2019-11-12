@@ -130,12 +130,17 @@ def split(df: pd.DataFrame, n_splits: int = 5) -> tuple:
     return KFold(n_splits=n_splits, shuffle=True).split(df)
 
 
-def data_representation(df: pd.DataFrame, descriptors: tuple, components: tuple = (2, 3)) -> None:
-    """ Build and save tsne models """
+def data_representation(df: pd.DataFrame, descriptors: tuple, show: bool = True, components: tuple = (2, 3)) -> None:
+    """ Build and save or show already built tsne models """
 
     for n_components in components:
         tsne = TSNEManifold(df, descriptors, f'models/tsne_{n_components}.model', n_components)
-        tsne.fit()
+
+        if show:
+            tsne.save_scatter(show=True)
+
+        else:
+            tsne.fit()
 
 
 @metrics.make_scorer
@@ -299,6 +304,7 @@ class BaseManifold(BaseClassifier):
 
         self.transformed = None
         self.n_components = n_components
+        self.load_model()
 
     def __str__(self):
         print_string = 'Manifold object. Params:\n'
@@ -321,9 +327,9 @@ class BaseManifold(BaseClassifier):
 
         self.save_model()
         self.save_model_params()
-        self.save_scatter('Dataset representation')
+        self.save_scatter()
 
-    def save_scatter(self, title: str):
+    def save_scatter(self, title: str = 'Dataset representation', show: bool = False):
         self.check_model()
 
         if self.n_components == 3:
@@ -341,8 +347,13 @@ class BaseManifold(BaseClassifier):
             plt.ylabel('x1')
 
         plt.title(title)
-        plt.savefig(self.filename_for_save + '.png')
-        plt.clf()
+
+        if not show:
+            plt.savefig(self.filename_for_save + '.png')
+            plt.clf()
+
+        else:
+            plt.show()
 
     def save_model(self) -> None:
         """ Save sklearn model to binary file by pickle """
