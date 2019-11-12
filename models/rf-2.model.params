@@ -10,7 +10,7 @@ min_impurity_split: None
 min_samples_leaf: 1
 min_samples_split: 2
 min_weight_fraction_leaf: 0.0
-n_estimators: 80
+n_estimators: 130
 n_jobs: None
 oob_score: False
 random_state: None
