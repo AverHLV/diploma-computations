@@ -11,6 +11,7 @@ from pickle import load, dump
 from seaborn import heatmap, violinplot
 
 from sklearn import metrics
+from sklearn.manifold import MDS, TSNE
 from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import GridSearchCV, KFold
 from sklearn.neighbors import KNeighborsClassifier
@@ -47,7 +48,7 @@ def load_data(path: Path, info: bool = False) -> pd.DataFrame:
     return df
 
 
-def visualize(df: pd.DataFrame, descriptors: tuple, show: str = 'class') -> None:
+def visualize(df: pd.DataFrame, descriptors: tuple, show: str = 'heat') -> None:
     """
     Visualise different statistics from pd.DataFrame
 
@@ -63,7 +64,16 @@ def visualize(df: pd.DataFrame, descriptors: tuple, show: str = 'class') -> None
             print(df[column].describe(), '\n')
 
     elif show == 'data':
-        pass
+        for algorithm in (MDS, 'MDS'), (TSNE, 'tSNE'):
+            embed_df = pd.DataFrame(algorithm[0]().fit_transform(
+                df[df.columns[descriptors[0]:descriptors[1]]]),
+                columns=['x0', 'x1']
+            )
+
+            plt.scatter(embed_df['x0'], embed_df['x1'])
+            plt.title(algorithm[1] + ' dataset representation')
+            plt.savefig(algorithm[1].lower() + '.png')
+            plt.clf()
 
     elif show == 'class':
         frequencies = {0: 0, 1: 0, 2: 0, 3: 0, 4: 0}
