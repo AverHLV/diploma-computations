@@ -11,7 +11,7 @@ from pickle import load, dump
 from seaborn import heatmap, violinplot
 
 from sklearn import metrics
-from sklearn.manifold import MDS, TSNE
+from sklearn.manifold import TSNE
 from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import GridSearchCV, KFold
 from sklearn.neighbors import KNeighborsClassifier
@@ -57,23 +57,11 @@ def visualize(df: pd.DataFrame, descriptors: tuple, show: str = 'heat') -> None:
     :param show: what plot to show
     """
 
-    assert show in ('stats', 'data', 'class', 'heat', 'hist', 'violin'), f'Wrong "show" value: {show}.'
+    assert show in ('stats', 'class', 'heat', 'hist', 'violin'), f'Wrong "show" value: {show}.'
 
     if show == 'stats':
         for column in df.columns[descriptors[0]:descriptors[1]]:
             print(df[column].describe(), '\n')
-
-    elif show == 'data':
-        for algorithm in (MDS, 'MDS'), (TSNE, 'tSNE'):
-            embed_df = pd.DataFrame(algorithm[0]().fit_transform(
-                df[df.columns[descriptors[0]:descriptors[1]]]),
-                columns=['x0', 'x1']
-            )
-
-            plt.scatter(embed_df['x0'], embed_df['x1'])
-            plt.title(algorithm[1] + ' dataset representation')
-            plt.savefig(algorithm[1].lower() + '.png')
-            plt.clf()
 
     elif show == 'class':
         frequencies = {0: 0, 1: 0, 2: 0, 3: 0, 4: 0}
@@ -140,6 +128,14 @@ def split(df: pd.DataFrame, n_splits: int = 5) -> tuple:
     """ Split pd.DataFrame to train / test subsets for cross-validation """
 
     return KFold(n_splits=n_splits, shuffle=True).split(df)
+
+
+def data_representation(df: pd.DataFrame, descriptors: tuple, components: tuple = (2, 3)) -> None:
+    """ Build and save tsne models """
+
+    for n_components in components:
+        tsne = TSNEManifold(df, descriptors, f'models/tsne_{n_components}.model', n_components)
+        tsne.fit()
 
 
 @metrics.make_scorer
@@ -291,6 +287,91 @@ class BaseClassifier(object):
 
         except IOError:
             pass
+
+
+class BaseManifold(BaseClassifier):
+    """ Sklearn manifold base class """
+
+    def __init__(self, input_data, descriptors, filename_for_save, n_components):
+        super().__init__(input_data, descriptors, filename_for_save)
+
+        assert n_components in (2, 3), f'Wrong n_components value: {n_components}'
+
+        self.transformed = None
+        self.n_components = n_components
+
+    def __str__(self):
+        print_string = 'Manifold object. Params:\n'
+        params = self.model.get_params()
+
+        for key in params:
+            print_string += f'{key}: {params[key]}\n'
+
+        return print_string
+
+    def fit(self) -> None:
+        columns = ['x0', 'x1'] if self.n_components == 2 else ['x0', 'x1', 'x2']
+
+        self.transformed = self.model.fit_transform(
+            self.input_data[self.input_data.columns[self.descriptors[0]:self.descriptors[1]]],
+            columns=columns
+        )
+
+        self.fitted = True
+
+        self.save_model()
+        self.save_model_params()
+        self.save_scatter('Dataset representation')
+
+    def save_scatter(self, title: str):
+        self.check_model()
+
+        if self.n_components == 3:
+            from mpl_toolkits.mplot3d import Axes3D
+
+            ax = plt.axes(projection='3d')
+            ax.scatter(self.transformed['x0'], self.transformed['x1'], self.transformed['x2'], '-b')
+            ax.set_xlabel('x0')
+            ax.set_ylabel('x1')
+            ax.set_zlabel('x2')
+
+        else:
+            plt.scatter(self.transformed['x0'], self.transformed['x1'])
+            plt.xlabel('x0')
+            plt.ylabel('x1')
+
+        plt.title(title)
+        plt.savefig(self.filename_for_save + '.png')
+        plt.clf()
+
+    def save_model(self) -> None:
+        """ Save sklearn model to binary file by pickle """
+
+        self.check_model()
+
+        with open(self.filename_for_save, 'wb') as file:
+            dump({'model': self.model, 'transformed': self.transformed}, file)
+
+    def load_model(self) -> None:
+        """ Load sklearn model from binary file by pickle """
+
+        try:
+            with open(self.filename_for_save, 'rb') as file:
+                dictionary = load(file)
+                self.model = dictionary['model']
+                self.transformed = dictionary['transformed']
+                self.fitted = True
+
+        except IOError:
+            pass
+
+
+class TSNEManifold(BaseManifold):
+    def __init__(self, input_data, descriptors, filename_for_save, n_components=2):
+        super().__init__(input_data, descriptors, filename_for_save, n_components)
+
+        if not self.fitted:
+            self.model = TSNE(n_components=self.n_components)
 
 
 class KNeighbors(BaseClassifier):
@@ -455,7 +536,10 @@ if __name__ == '__main__':
     # dot_to_png(base_dir / 'models')
 
     data = load_data(base_dir / 'csv' / 'data.csv')
-    visualize(data, descriptors_index, show='data')
+
+    # visualize(data, descriptors_index, show='data')
+    data_representation(data, descriptors_index)
+
     # data = scale(data, descriptors_index)
 
     # compare(data, descriptors_index)
