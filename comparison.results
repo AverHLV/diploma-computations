@@ -1,0 +1,22 @@
+comparison.py[INFO][2019-11-11 18:19:09,281] Starting...
+comparison.py[INFO][2019-11-11 18:49:56,295] models/nb-0.model fit time: 1846.9881415367126 s
+comparison.py[INFO][2019-11-11 18:50:09,960] models/dt-0.model fit time: 13.664375066757202 s
+comparison.py[INFO][2019-11-11 19:28:20,538] models/rf-0.model fit time: 2290.578604221344 s
+comparison.py[INFO][2019-11-11 19:28:20,539] Iter# 0, winner: nb, metric values: [('nb', 0.734452369108369), ('rf', 0.6393648110759945), ('dt', 0.6292502875504642)]
+comparison.py[INFO][2019-11-11 20:00:19,571] models/nb-1.model fit time: 1919.0013546943665 s
+comparison.py[INFO][2019-11-11 20:00:33,096] models/dt-1.model fit time: 13.52501893043518 s
+comparison.py[INFO][2019-11-11 20:36:49,094] models/rf-1.model fit time: 2175.9973361492157 s
+comparison.py[INFO][2019-11-11 20:36:49,094] Iter# 1, winner: nb, metric values: [('nb', 0.7460671216494162), ('rf', 0.6371282636682057), ('dt', 0.6249056936962789)]
+comparison.py[INFO][2019-11-11 21:08:11,553] models/nb-2.model fit time: 1882.422191143036 s
+comparison.py[INFO][2019-11-11 21:08:25,053] models/dt-2.model fit time: 13.49980354309082 s
+comparison.py[INFO][2019-11-11 21:46:37,374] models/rf-2.model fit time: 2292.3207898139954 s
+comparison.py[INFO][2019-11-11 21:46:37,374] Iter# 2, winner: nb, metric values: [('nb', 0.7461522633907068), ('rf', 0.637611521884975), ('dt', 0.624797689820753)]
+comparison.py[INFO][2019-11-11 22:18:01,077] models/nb-3.model fit time: 1883.6415181159973 s
+comparison.py[INFO][2019-11-11 22:18:14,852] models/dt-3.model fit time: 13.77428936958313 s
+comparison.py[INFO][2019-11-11 22:56:42,372] models/rf-3.model fit time: 2307.5194425582886 s
+comparison.py[INFO][2019-11-11 22:56:42,372] Iter# 3, winner: nb, metric values: [('nb', 0.7474906391851439), ('rf', 0.639764773053471), ('dt', 0.6282218710273711)]
+comparison.py[INFO][2019-11-11 23:27:46,705] models/nb-4.model fit time: 1864.2918875217438 s
+comparison.py[INFO][2019-11-11 23:28:00,098] models/dt-4.model fit time: 13.392711877822876 s
+comparison.py[INFO][2019-11-12 00:05:42,175] models/rf-4.model fit time: 2262.0765295028687 s
+comparison.py[INFO][2019-11-12 00:05:42,175] Iter# 4, winner: nb, metric values: [('nb', 0.7456413459384947), ('rf', 0.6370834949986278), ('dt', 0.6226456012844899)]
+comparison.py[INFO][2019-11-12 00:05:42,176] Results: {'nb': 5, 'dt': 0, 'rf': 0}
