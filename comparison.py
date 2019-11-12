@@ -312,8 +312,8 @@ class BaseManifold(BaseClassifier):
     def fit(self) -> None:
         columns = ['x0', 'x1'] if self.n_components == 2 else ['x0', 'x1', 'x2']
 
-        self.transformed = self.model.fit_transform(
-            self.input_data[self.input_data.columns[self.descriptors[0]:self.descriptors[1]]],
+        self.transformed = pd.DataFrame(
+            self.model.fit_transform(self.input_data[self.input_data.columns[self.descriptors[0]:self.descriptors[1]]]),
             columns=columns
         )
 
