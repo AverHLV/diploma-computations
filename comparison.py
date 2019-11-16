@@ -548,7 +548,7 @@ if __name__ == '__main__':
 
     data = load_data(base_dir / 'csv' / 'data.csv')
 
-    # visualize(data, descriptors_index, show='data')
+    # visualize(data, descriptors_index, show='class')
     data_representation(data, descriptors_index)
 
     # data = scale(data, descriptors_index)
